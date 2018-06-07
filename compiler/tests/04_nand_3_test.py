@@ -31,7 +31,7 @@ class nand_3_test(unittest.TestCase):
 
         OPTS.check_lvsdrc = True
         self.local_check(tx)
-        globals.end_openram()
+        #globals.end_openram()
         
     def local_check(self, tx):
         tempspice = OPTS.openram_temp + "temp.sp"
@@ -43,8 +43,8 @@ class nand_3_test(unittest.TestCase):
         self.assertFalse(calibre.run_drc(tx.name, tempgds))
         self.assertFalse(calibre.run_lvs(tx.name, tempgds, tempspice))
 
-        os.remove(tempspice)
-        os.remove(tempgds)
+        #os.remove(tempspice)
+        #os.remove(tempgds)
 
 
 # instantiate a copy of the class to actually run the test

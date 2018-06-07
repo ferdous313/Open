@@ -4,6 +4,7 @@ import debug
 from tech import drc
 from ptx import ptx
 from vector import vector
+from tech import parameter, spice
 from globals import OPTS
 
 class nand_3(design.design):
@@ -65,34 +66,28 @@ class nand_3(design.design):
 
     def create_ptx(self):
         """ Create ptx  but not yet placed"""
-        self.nmos1 = ptx(name="nand_3_nmos1",
-                         width=self.nmos_size,
+        self.nmos1 = ptx(width=self.nmos_size,
                          mults=self.tx_mults,
                          tx_type="nmos")
         self.add_mod(self.nmos1)
-        self.nmos2 = ptx(name="nand_3_nmos2",
-                         width=self.nmos_size,
+        self.nmos2 = ptx(width=self.nmos_size,
                          mults=self.tx_mults,
                          tx_type="nmos")
         self.add_mod(self.nmos2)
-        self.nmos3 = ptx(name="nand_3_nmos3",
-                         width=self.nmos_size,
+        self.nmos3 = ptx(width=self.nmos_size,
                          mults=self.tx_mults,
                          tx_type="nmos")
         self.add_mod(self.nmos3)
 
-        self.pmos1 = ptx(name="nand_3_pmos1",
-                         width=self.pmos_size,
+        self.pmos1 = ptx(width=self.pmos_size,
                          mults=self.tx_mults,
                          tx_type="pmos")
         self.add_mod(self.pmos1)
-        self.pmos2 = ptx(name="nand_3_pmos2",
-                         width=self.pmos_size,
+        self.pmos2 = ptx(width=self.pmos_size,
                          mults=self.tx_mults,
                          tx_type="pmos")
         self.add_mod(self.pmos2)
-        self.pmos3 = ptx(name="nand_3_pmos3",
-                         width=self.pmos_size,
+        self.pmos3 = ptx(width=self.pmos_size,
                          mults=self.tx_mults,
                          tx_type="pmos")
         self.add_mod(self.pmos3)
@@ -531,3 +526,11 @@ class nand_3(design.design):
         self.Z_position = self.Z_position
         self.vdd_position = self.vdd_position
         self.gnd_position = self.gnd_position
+
+    def input_load(self):
+        return ((self.nmos_size+self.pmos_size)/parameter["min_tx_size"])*spice["min_tx_gate_c"]
+
+    def delay(self, slope, load=0.0):
+        r = spice["min_tx_r"]/(self.nmos_size/parameter["min_tx_size"])
+        c_para = spice["min_tx_c_para"]*(self.nmos_size/parameter["min_tx_size"])#ff
+        return self.cal_delay_with_rc(r = r, c =  c_para+load, slope =slope)

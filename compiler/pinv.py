@@ -1,7 +1,7 @@
 import contact
 import design
 import debug
-from tech import drc, parameter
+from tech import drc, parameter, spice
 from ptx import ptx
 from vector import vector
 from math import ceil
@@ -90,15 +90,13 @@ class pinv(design.design):
 
     def create_ptx(self):
         """Intiializes a ptx object"""
-        self.nmos = ptx(name="inv_nmos1",
-                        width=self.nmos_size,
+        self.nmos = ptx(width=self.nmos_size,
                         mults=self.tx_mults,
                         tx_type="nmos")
         self.nmos.connect_fingered_poly()
         self.nmos.connect_fingered_active()
         self.add_mod(self.nmos)
-        self.pmos = ptx(name="inv_pmos1",
-                        width=self.pmos_size,
+        self.pmos = ptx(width=self.pmos_size,
                         mults=self.tx_mults,
                         tx_type="pmos")
         self.pmos.connect_fingered_poly()
@@ -403,3 +401,12 @@ class pinv(design.design):
     def setup_layout_offsets(self):
         self.A_position = self.input_position
         self.Z_position = self.output_position
+
+    def input_load(self):
+        return ((self.nmos_size+self.pmos_size)/parameter["min_tx_size"])*spice["min_tx_gate_c"]
+
+    def delay(self, slope, load=0.0):
+        from tech import spice
+        r = spice["min_tx_r"]/(self.nmos_size/parameter["min_tx_size"])
+        c_para = spice["min_tx_c_para"]*(self.nmos_size/parameter["min_tx_size"])#ff
+        return self.cal_delay_with_rc(r = r, c =  c_para+load, slope =slope)

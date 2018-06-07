@@ -1,9 +1,9 @@
 """
 This provides a set of useful generic types for the gdsMill interface. 
 """
-import tech
 import debug
 from vector import vector
+from tech import GDS
 
 class geometry:
     """
@@ -39,11 +39,11 @@ class instance(geometry):
         self.offset = vector(offset).snap_to_grid()
         self.mirror = mirror
 
-
+        debug.info(3, "creating instance: " + self.name)
 
     def gds_write_file(self, newLayout):
         """Recursively writes all the sub-modules in this instance"""
-        debug.info(3, "writing instance:" + self.name)
+        debug.info(3, "writing instance: " + self.name)
         # make sure to write out my module/structure 
         # (it will only be written the first time though)
         self.mod.gds_write_file(self.gds)
@@ -79,7 +79,7 @@ class path(geometry):
 
     def gds_write_file(self, newLayout):
         """Writes the path to GDS"""
-        debug.info(3, "writing path (" + str(self.layerNumber) +  "):" + self.coordinates)
+        debug.info(3, "writing path (" + str(self.layerNumber) +  "): " + self.coordinates)
         newLayout.addPath(layerNumber=self.layerNumber,
                           purposeNumber=0,
                           coordinates=self.coordinates,
@@ -97,19 +97,26 @@ class path(geometry):
 class label(geometry):
     """Represents a text label"""
 
-    def __init__(self, text, layerNumber, offset, zoom=1):
+    def __init__(self, text, layerNumber, offset, zoom=-1):
         """Initializes a text label for specified layer"""
         geometry.__init__(self)
         self.name = "label"
         self.text = text
         self.layerNumber = layerNumber
         self.offset = vector(offset).snap_to_grid()
-        self.zoom = zoom
+        if zoom<0:
+            self.zoom = GDS["zoom"]
+        else:
+            self.zoom = zoom
+
+
         self.size = 0
+
+        debug.info(3,"creating label " + self.text + " " + str(self.layerNumber) + " " + str(self.offset))
 
     def gds_write_file(self, newLayout):
         """Writes the text label to GDS"""
-        debug.info(3, "writing label (" + str(self.layerNumber) + "):" + self.text)
+        debug.info(3, "writing label (" + str(self.layerNumber) + "): " + self.text)
         newLayout.addText(text=self.text,
                           layerNumber=self.layerNumber,
                           purposeNumber=0,
@@ -137,6 +144,10 @@ class rectangle(geometry):
         self.size = vector(width, height).snap_to_grid()
         self.width = self.size.x
         self.height = self.size.y
+
+        debug.info(3, "creating rectangle (" + str(self.layerNumber) + "): " 
+                   + str(self.width) + "x" + str(self.height) + " @ " + str(self.offset))
+
 
     def gds_write_file(self, newLayout):
         """Writes the rectangular shape to GDS"""
